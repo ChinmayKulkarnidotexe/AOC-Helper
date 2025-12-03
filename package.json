@@ -1,0 +1,54 @@
+{
+  "name": "aoc-helper",
+  "displayName": "AOC Helper",
+  "description": "A simple extension to make solving AOC puzzles easier in VS Code",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.106.1"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aoc-helper.helloWorld",
+        "title": "Hello World"
+      },
+      {
+        "command": "aoc-helper.configure",
+        "title": "AoC: Configure Cookie"
+      },
+      {
+        "command": "aoc-helper.fetchInput",
+        "title": "AoC: Fetch Input"
+      },
+      {
+        "command": "aoc-helper.runSolution",
+        "title": "AoC: Run Solution"
+      },
+      {
+        "command": "aoc-helper.submitAnswer",
+        "title": "AoC: Submit Answer"
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.106.1",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.39.1"
+  },
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  }
+}
