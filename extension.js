@@ -41,8 +41,8 @@ async function fetchInputCmd(context) {
 	const cookie = await context.secrets.get("aoc-session");
 	if (!cookie) return vscode.window.showErrorMessage("Run AoC: Configure first");
 
-	const day = await pickDay();
 	const year = await pickYear();
+	const day = await pickDay(year);
 	if (!day || !year) return;
 
 	vscode.window.showInformationMessage(`Selected Year: ${year}, Day: ${day}`);
@@ -75,13 +75,44 @@ async function runSolutionCmd() {
 	const folder = path.join(root, `${year}`, `day${day}`);
 
 	const files = fs.readdirSync(folder);
-	const solution = files.find(f => f.startsWith("solution") || f.startsWith("part"));
 
-	if (!solution) {
+	const part1 = files.find(f =>
+		f.toLowerCase().includes("1") && (f.startsWith("solution") || f.startsWith("part"))
+	);
+
+	const part2 = files.find(f =>
+		f.toLowerCase().includes("2") && (f.startsWith("solution") || f.startsWith("part"))
+	);
+
+	const single = files.find(f =>
+		(f.startsWith("solution") || f.startsWith("part")) &&
+		!f.toLowerCase().includes("1") &&
+		!f.toLowerCase().includes("2")
+	);
+
+	let fileToRun = null;
+
+	if (part1 || part2) {
+		const choice = await vscode.window.showQuickPick(
+			[
+				part1 ? "Run Part 1" : null,
+				part2 ? "Run Part 2" : null
+			].filter(Boolean),
+			{ placeHolder: "Select which part to run" }
+		);
+
+		if (!choice) return;
+
+		if (choice === "Run Part 1") fileToRun = part1;
+		if (choice === "Run Part 2") fileToRun = part2;
+	}
+	else if (single) {
+		fileToRun = single;
+	} else {
 		return vscode.window.showErrorMessage("No solution file found.");
 	}
 
-	const output = await runSolution(path.join(folder, solution));
+	const output = await runSolution(path.join(folder, fileToRun));
 	vscode.window.showInformationMessage(`Output: ${output}`);
 	return output;
 }
@@ -95,12 +126,47 @@ async function submitAnswerCmd(context) {
 
 	const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
 	const folder = path.join(root, `${year}`, `day${day}`);
-	const solution = fs.readdirSync(folder).find(f => f.startsWith("solution") || f.startsWith("part"));
+	const files = fs.readdirSync(folder);
 
-	const answer = await runSolution(path.join(folder, solution));
-	const result = await submitAnswer(year, day, 1, answer, cookie);
+	const part1 = files.find(f => f.toLowerCase().includes("1") && (f.startsWith("solution") || f.startsWith("part")));
+	const part2 = files.find(f => f.toLowerCase().includes("2") && (f.startsWith("solution") || f.startsWith("part")));
+	const single = files.find(f => (f.startsWith("solution") || f.startsWith("part")) && !f.toLowerCase().includes("1") && !f.toLowerCase().includes("2"));
+
+	let fileToRun = null;
+	let level = 1;
+
+	if (part1 || part2) {
+		const choice = await vscode.window.showQuickPick(
+			[
+				part1 ? "Submit Part 1" : null,
+				part2 ? "Submit Part 2" : null
+			].filter(Boolean),
+			{ placeHolder: "Select which part to submit" }
+		);
+
+		if (!choice) return;
+
+		if (choice === "Submit Part 1") {
+			fileToRun = part1;
+			level = 1;
+		}
+		if (choice === "Submit Part 2") {
+			fileToRun = part2;
+			level = 2;
+		}
+
+	} else if (single) {
+		fileToRun = single;
+		level = 1;
+	} else {
+		return vscode.window.showErrorMessage("No solution file found.");
+	}
+
+	const answer = await runSolution(path.join(folder, fileToRun));
+	const result = await submitAnswer(year, day, level, answer, cookie);
 
 	vscode.window.showInformationMessage(result.status);
+	vscode.env.openExternal(`https://adventofcode.com/${year}/day/${day}/answer`);
 }
 
 
